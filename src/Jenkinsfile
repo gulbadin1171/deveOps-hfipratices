@@ -1,0 +1,44 @@
+pipeline {
+    agent any
+    environment {
+        REGISTRY = "registry.gitlab.mfsys.com.pk"
+        REPO = "registry.gitlab.mfsys.com.pk/react-frontend"
+        IMAGE_TAG = "${env.BUILD_NUMBER}"
+    }
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                git branch: 'main', url: 'https://github.com/gulbadin1171/deveOps-hfipratices.git'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    dockerImage = docker.build("${REPO}:${IMAGE_TAG}")
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    docker.withRegistry("https://${REGISTRY}", "gitlab-registry") {
+                        dockerImage.push()
+                        dockerImage.push("latest")
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ Successfully pushed ${REPO}:${IMAGE_TAG} to GitLab Registry"
+        }
+        failure {
+            echo "❌ Build or Push failed — check logs"
+        }
+    }
+}
