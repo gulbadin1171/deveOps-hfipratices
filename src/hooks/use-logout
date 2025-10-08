@@ -1,0 +1,29 @@
+import { useMutation } from '@tanstack/react-query';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+
+export const useLogout = ({ onSuccess }: { onSuccess: () => void }) => {
+  const navigate = useNavigate();
+
+  return useMutation({
+    mutationFn: async () => {
+      await axios.post(
+        'http://localhost:8080/auth/logout',
+        {},
+        {
+          withCredentials: true, // Include cookies for session-based authentication
+        },
+      );
+    },
+    onSuccess: () => {
+      // Clear any client-side state if needed (e.g., localStorage)
+      localStorage.clear(); // Adjust based on your needs
+      onSuccess(); // Trigger redirect
+    },
+    onError: (error) => {
+      console.error('Logout failed:', error);
+      // Optionally show an error message
+      alert('Failed to log out. Please try again.');
+    },
+  });
+};
